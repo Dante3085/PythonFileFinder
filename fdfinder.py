@@ -1,9 +1,7 @@
 
-import sys
 import subprocess
 import argparse
 
-from fdfinder_exceptions import MissingSearchItemError
 from pathlib import Path
 
 
@@ -11,13 +9,21 @@ class FdFinder:
     def __init__(self):
         parser = argparse.ArgumentParser(description="Find files or directories and open Windows explorer")
 
-        parser.add_argument("-r", "--run")
+        parser.add_argument("-r", "--run", action="store_true",
+                            help="If this option is given and the given search_item is a file and it has been found,"
+                                 "the search_item is opened with it's default application.")
         parser.add_argument("search_item", metavar="s", type=str, nargs=1, help="File or directory to be searched for")
         parser.add_argument("search_directories", metavar="d", type=str, nargs="*",
                             help="List of directories the search will start from", default=["."])
 
         args = parser.parse_args()
+        print(args)
+        if args.run is None:
+            print("NONE")
+        else:
+            print("NOT NONE")
 
+        self.__run = args.run
         self.__search_item = args.search_item[0]
         self.__starting_directories = args.search_directories
         self.__search_item_paths = self.__get_search_item_paths()
@@ -63,4 +69,7 @@ class FdFinder:
                 print(f"Given index \"{user_input}\" is invalid. Use one of the above indices.")
                 continue
 
-            subprocess.Popen(f'explorer /run,{self.__search_item_paths[user_input].absolute()}')
+            if self.__run:
+                subprocess.Popen(f'explorer /run,{self.__search_item_paths[user_input].absolute()}')
+            else:
+                subprocess.Popen(f'explorer /select,{self.__search_item_paths[user_input].absolute()}')
