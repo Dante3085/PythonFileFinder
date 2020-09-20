@@ -1,33 +1,31 @@
 
 import sys
 import subprocess
+import argparse
+
 from fdfinder_exceptions import MissingSearchItemError
 from pathlib import Path
 
 
 class FdFinder:
     def __init__(self):
-        try:
-            self.__search_item = self.__get_search_item()
-        except MissingSearchItemError as m:
-            print(m.message)
+        parser = argparse.ArgumentParser(description="Find files or directories and open Windows explorer")
 
-        self.__starting_directories = self.__get_starting_directories()
+        parser.add_argument("-r", "--run")
+        parser.add_argument("search_item", metavar="s", type=str, nargs=1, help="File or directory to be searched for")
+        parser.add_argument("search_directories", metavar="d", type=str, nargs="*",
+                            help="List of directories the search will start from", default=["."])
+
+        args = parser.parse_args()
+
+        self.__search_item = args.search_item[0]
+        self.__starting_directories = args.search_directories
         self.__search_item_paths = self.__get_search_item_paths()
-
-    def __get_search_item(self):
-        if len(sys.argv) < 2:
-            raise MissingSearchItemError()
-        return sys.argv[1]
-
-    def __get_starting_directories(self):
-        if len(sys.argv) < 3:
-            print("No \"starting_directories\" given. Assuming ['.']")
-            return ["."]
-        return sys.argv[2:]
 
     def __get_search_item_paths(self):
         paths = []
+
+        # Look for the search_item in every starting_directory
         for starting_directory in self.__starting_directories:
             directory = Path(starting_directory)
             if not directory.exists():
@@ -65,4 +63,4 @@ class FdFinder:
                 print(f"Given index \"{user_input}\" is invalid. Use one of the above indices.")
                 continue
 
-            subprocess.Popen(f'explorer /select, {self.__search_item_paths[user_input].absolute()}')
+            subprocess.Popen(f'explorer /run,{self.__search_item_paths[user_input].absolute()}')
