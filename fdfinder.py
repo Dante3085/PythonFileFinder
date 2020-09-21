@@ -12,6 +12,8 @@ class FdFinder:
         parser.add_argument("-r", "--run", action="store_true",
                             help="If this option is given and the given search_item is a file and it has been found,"
                                  "the search_item is opened with it's default application.")
+        parser.add_argument("-m", "--max", default=-1, type=int,
+                            help="Maximum number of search_item candidates the program will search for.")
         parser.add_argument("search_item", metavar="s", type=str, nargs=1, help="File or directory to be searched for")
         parser.add_argument("search_directories", metavar="d", type=str, nargs="*",
                             help="List of directories the search will start from", default=["."])
@@ -19,6 +21,7 @@ class FdFinder:
         args = parser.parse_args()
 
         self.__run = args.run
+        self.__max = int(args.max)
         self.__search_item = args.search_item[0]
         self.__starting_directories = args.search_directories
         self.__search_item_paths = self.__get_search_item_paths()
@@ -33,11 +36,21 @@ class FdFinder:
                 print(f"Given starting_directory \"{starting_directory}\" does not exist.")
                 continue
 
-            counter = 0
-            for item in directory.rglob(f"*{self.__search_item}*"):
-                paths.append(item.absolute())
-                print(f"Press {counter} to open explorer at {paths[-1]}.")
-                counter += 1
+            if self.__max == -1:
+                index_counter = 0
+                for item in directory.rglob(f"{self.__search_item}"):
+                    paths.append(item.absolute())
+                    print(f"Press {index_counter} to open explorer at {paths[-1]}.")
+                    index_counter += 1
+            else:
+                index_counter = 0
+                for item in directory.rglob(f"{self.__search_item}"):
+                    paths.append(item.absolute())
+                    print(f"Press {index_counter} to open explorer at {paths[-1]}.")
+                    index_counter += 1
+
+                    if index_counter == self.__max:
+                        break
 
         return paths
 
