@@ -17,11 +17,6 @@ class FdFinder:
                             help="List of directories the search will start from", default=["."])
 
         args = parser.parse_args()
-        print(args)
-        if args.run is None:
-            print("NONE")
-        else:
-            print("NOT NONE")
 
         self.__run = args.run
         self.__search_item = args.search_item[0]
